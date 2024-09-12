@@ -39,6 +39,7 @@ Load< LitColorTextureProgram > lit_color_texture_program(LoadTagEarly, []() -> L
 
 	lit_color_texture_program_pipeline.textures[0].texture = tex;
 	lit_color_texture_program_pipeline.textures[0].target = GL_TEXTURE_2D;
+	
 
 	return ret;
 });
@@ -75,6 +76,8 @@ LitColorTextureProgram::LitColorTextureProgram() {
 		"uniform vec3 LIGHT_DIRECTION;\n"
 		"uniform vec3 LIGHT_ENERGY;\n"
 		"uniform float LIGHT_CUTOFF;\n"
+		"uniform float SUN;\n"
+		"uniform float HIGHLIGHT;\n"
 		"in vec3 position;\n"
 		"in vec3 normal;\n"
 		"in vec4 color;\n"
@@ -82,28 +85,28 @@ LitColorTextureProgram::LitColorTextureProgram() {
 		"out vec4 fragColor;\n"
 		"void main() {\n"
 		"	vec3 n = normalize(normal);\n"
-		"	vec3 e;\n"
-		"	if (LIGHT_TYPE == 0) { //point light \n"
-		"		vec3 l = (LIGHT_LOCATION - position);\n"
-		"		float dis2 = dot(l,l);\n"
-		"		l = normalize(l);\n"
-		"		float nl = max(0.0, dot(n, l)) / max(1.0, dis2);\n"
-		"		e = nl * LIGHT_ENERGY;\n"
-		"	} else if (LIGHT_TYPE == 1) { //hemi light \n"
-		"		e = (dot(n,-LIGHT_DIRECTION) * 0.5 + 0.5) * LIGHT_ENERGY;\n"
-		"	} else if (LIGHT_TYPE == 2) { //spot light \n"
-		"		vec3 l = (LIGHT_LOCATION - position);\n"
-		"		float dis2 = dot(l,l);\n"
-		"		l = normalize(l);\n"
-		"		float nl = max(0.0, dot(n, l)) / max(1.0, dis2);\n"
-		"		float c = dot(l,-LIGHT_DIRECTION);\n"
-		"		nl *= smoothstep(LIGHT_CUTOFF,mix(LIGHT_CUTOFF,1.0,0.1), c);\n"
-		"		e = nl * LIGHT_ENERGY;\n"
-		"	} else { //(LIGHT_TYPE == 3) //directional light \n"
-		"		e = max(0.0, dot(n,-LIGHT_DIRECTION)) * LIGHT_ENERGY;\n"
-		"	}\n"
+		"	vec3 shade\n;" //blue shade color
+		"	vec3 highlight\n;" //yellow highlight color
+		"	vec3 l = (LIGHT_DIRECTION);\n"
+		"	l = normalize(l);\n"
 		"	vec4 albedo = texture(TEX, texCoord) * color;\n"
-		"	fragColor = vec4(e*albedo.rgb, albedo.a);\n"
+		"	if(dot(n, l) < SUN)\n"
+		"	{\n"
+		"	shade = vec3(0.65,0.89, 0.96);\n"
+		"	fragColor = vec4(shade*albedo.rgb, 1);\n"
+		"	}\n"
+		"	else\n"
+		"	{\n"
+		"	fragColor = vec4(albedo.rgb, 1);\n"		
+		"	}\n"
+		"	if( (dot(n, l) > 0.95))\n"
+		"	{\n"
+		"		if(SUN < 0.75)\n"
+		"		highlight = vec3(1,0.8,0.3);\n"
+		"		else\n"
+		"		highlight = vec3(0.6,0.9,0.9);"
+		"	fragColor = vec4(1 - (1 - highlight) *(1 - fragColor.rgb), 1);\n"			
+		"	}\n"
 		"}\n"
 	);
 	//As you can see above, adjacent strings in C/C++ are concatenated.
@@ -125,8 +128,8 @@ LitColorTextureProgram::LitColorTextureProgram() {
 	LIGHT_DIRECTION_vec3 = glGetUniformLocation(program, "LIGHT_DIRECTION");
 	LIGHT_ENERGY_vec3 = glGetUniformLocation(program, "LIGHT_ENERGY");
 	LIGHT_CUTOFF_float = glGetUniformLocation(program, "LIGHT_CUTOFF");
-
-
+	SUN_float = glGetUniformLocation(program, "SUN");
+	
 	GLuint TEX_sampler2D = glGetUniformLocation(program, "TEX");
 
 	//set TEX to always refer to texture binding zero:
