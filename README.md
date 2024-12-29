@@ -1,4 +1,4 @@
-# Wackaducky
+# Whackaducky
 
 Author: Taylor Kynard
 
