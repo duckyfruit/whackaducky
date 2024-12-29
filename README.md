@@ -8,9 +8,9 @@ I added in my own cell shader and a day/night cycle since I had some extra time!
 
 Screen Shot:
 
-[Wackaduckynight](screenshot.png)
-[Wackaduckyevening](screenshot2.png)
-[Wackaduckyday](screenshot3.png)
+![Wackaduckynight](screenshot.png)
+![Wackaduckyevening](screenshot2.png)
+![Wackaduckyday](screenshot3.png)
 
 How To Play:
 
